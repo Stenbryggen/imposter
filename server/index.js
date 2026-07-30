@@ -50,10 +50,10 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('startGame', () => {
+  socket.on('startGame', ({ rounds } = {}) => {
     try {
       const code = rooms.roomCodeFor(socket.id);
-      const room = rooms.startGame(code, socket.id);
+      const room = rooms.startGame(code, socket.id, rounds);
       broadcast(room);
       sendRoles(room);
     } catch (err) {

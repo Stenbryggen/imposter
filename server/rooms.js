@@ -4,6 +4,8 @@ const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // undgår forvekslelige 
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 12;
 const MAX_NAME_LENGTH = 20;
+const MIN_ROUNDS = 1;
+const MAX_ROUNDS = 3;
 
 const rooms = new Map(); // code -> room
 const socketToRoom = new Map(); // socketId -> code
@@ -64,6 +66,8 @@ function createRoom(hostId, hostName) {
     imposterId: null,
     turnOrder: [],
     currentTurnIndex: 0,
+    rounds: null,
+    currentRound: 1,
     clues: [],
     votes: {},
     lastResult: null,
@@ -86,7 +90,13 @@ function joinRoom(code, socketId, name) {
   return room;
 }
 
-function startGame(code, requesterId) {
+function clampRounds(rounds) {
+  const n = parseInt(rounds, 10);
+  if (Number.isNaN(n)) return MIN_ROUNDS;
+  return Math.min(MAX_ROUNDS, Math.max(MIN_ROUNDS, n));
+}
+
+function startGame(code, requesterId, rounds) {
   const room = requireRoom(code);
   requireHost(room, requesterId);
   if (room.players.length < MIN_PLAYERS) {
@@ -98,11 +108,23 @@ function startGame(code, requesterId) {
   room.turnOrder = shuffle(room.players.map((p) => p.id));
   room.imposterId = room.turnOrder[Math.floor(Math.random() * room.turnOrder.length)];
   room.currentTurnIndex = 0;
+  room.rounds = clampRounds(rounds);
+  room.currentRound = 1;
   room.clues = [];
   room.votes = {};
   room.lastResult = null;
   room.phase = 'CLUES';
   return room;
+}
+
+function advanceCluePointer(room) {
+  if (room.currentTurnIndex < room.turnOrder.length) return;
+  if (room.currentRound < room.rounds) {
+    room.currentRound += 1;
+    room.currentTurnIndex = 0;
+  } else {
+    room.phase = 'VOTING';
+  }
 }
 
 function submitClue(code, socketId, clue) {
@@ -114,11 +136,9 @@ function submitClue(code, socketId, clue) {
   if (!trimmed) throw new Error('Skriv et hint.');
   if (trimmed.length > 30) throw new Error('Hintet må højst være 30 tegn.');
   const player = room.players.find((p) => p.id === socketId);
-  room.clues.push({ playerId: socketId, name: player.name, clue: trimmed });
+  room.clues.push({ playerId: socketId, name: player.name, clue: trimmed, round: room.currentRound });
   room.currentTurnIndex += 1;
-  if (room.currentTurnIndex >= room.turnOrder.length) {
-    room.phase = 'VOTING';
-  }
+  advanceCluePointer(room);
   return room;
 }
 
@@ -192,6 +212,8 @@ function playAgain(code, requesterId) {
   room.imposterId = null;
   room.turnOrder = [];
   room.currentTurnIndex = 0;
+  room.rounds = null;
+  room.currentRound = 1;
   room.clues = [];
   room.votes = {};
   room.lastResult = null;
@@ -205,6 +227,8 @@ function resetToLobby(room, notice) {
   room.imposterId = null;
   room.turnOrder = [];
   room.currentTurnIndex = 0;
+  room.rounds = null;
+  room.currentRound = 1;
   room.clues = [];
   room.votes = {};
   room.lastResult = null;
@@ -243,9 +267,7 @@ function removePlayer(socketId) {
       if (turnIdx !== -1) {
         room.turnOrder.splice(turnIdx, 1);
         if (room.currentTurnIndex > turnIdx) room.currentTurnIndex -= 1;
-        if (room.phase === 'CLUES' && room.currentTurnIndex >= room.turnOrder.length) {
-          room.phase = 'VOTING';
-        }
+        if (room.phase === 'CLUES') advanceCluePointer(room);
       }
       delete room.votes[socketId];
       for (const [voter, voted] of Object.entries(room.votes)) {
@@ -268,6 +290,8 @@ function buildPublicState(room) {
     players: room.players.map((p) => ({ id: p.id, name: p.name })),
     turnOrder: room.turnOrder,
     currentTurnPlayerId: room.turnOrder[room.currentTurnIndex] || null,
+    rounds: room.rounds,
+    currentRound: room.currentRound,
     clues: room.clues,
     votedPlayerIds: Object.keys(room.votes),
     votes: room.phase === 'RESULT' ? room.votes : null,

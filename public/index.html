@@ -33,6 +33,14 @@
       <p class="hint">Del koden, eller lad andre scanne QR-koden for at joine</p>
       <h3>Spillere</h3>
       <ul id="player-list" class="list"></ul>
+      <div id="rounds-select" class="hidden">
+        <p class="label">Antal runder med hints</p>
+        <div class="segmented" id="rounds-options">
+          <button type="button" class="round-option" data-rounds="1">1</button>
+          <button type="button" class="round-option" data-rounds="2">2</button>
+          <button type="button" class="round-option" data-rounds="3">3</button>
+        </div>
+      </div>
       <p id="lobby-hint" class="hint"></p>
       <button id="btn-start" class="primary hidden">Start spil</button>
     </section>
@@ -45,6 +53,7 @@
         <p id="clue-word" class="big highlight"></p>
       </div>
 
+      <p id="clue-round-label" class="hint"></p>
       <h3>Turrækkefølge</h3>
       <ol id="turn-order-list" class="list"></ol>
 
@@ -55,11 +64,14 @@
       <p id="clue-wait-msg" class="hint"></p>
 
       <h3>Hints givet</h3>
-      <ul id="clue-list" class="list"></ul>
+      <div id="clue-list"></div>
     </section>
 
     <section id="view-voting" class="view hidden">
       <h2>Hvem er imposteren?</h2>
+      <h3>Hints der blev givet</h3>
+      <div id="voting-clue-list"></div>
+      <h3>Stem</h3>
       <ul id="vote-list" class="list vote-list"></ul>
       <p id="vote-progress" class="hint"></p>
     </section>

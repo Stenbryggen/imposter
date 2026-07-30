@@ -55,8 +55,17 @@
 
   // --- Lobby view -------------------------------------------------------
 
+  let selectedRounds = 1;
+  document.querySelectorAll('.round-option').forEach((btn) => {
+    btn.classList.toggle('active', Number(btn.dataset.rounds) === selectedRounds);
+    btn.addEventListener('click', () => {
+      selectedRounds = Number(btn.dataset.rounds);
+      document.querySelectorAll('.round-option').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+
   $('btn-start').addEventListener('click', () => {
-    socket.emit('startGame');
+    socket.emit('startGame', { rounds: selectedRounds });
   });
 
   function renderLobby() {
@@ -80,6 +89,7 @@
 
     const startBtn = $('btn-start');
     const hint = $('lobby-hint');
+    $('rounds-select').classList.toggle('hidden', !isHost());
     if (isHost()) {
       startBtn.classList.remove('hidden');
       const enough = state.players.length >= state.minPlayers;
@@ -107,6 +117,22 @@
     $('clue-input').value = '';
   }
 
+  function renderClueGroups(clues, showRoundHeaders) {
+    if (!clues.length) return '<p class="hint">Ingen hints endnu</p>';
+    const clueLine = (c) => `<li><span><strong>${escapeHtml(c.name)}:</strong> ${escapeHtml(c.clue)}</span></li>`;
+    if (!showRoundHeaders) {
+      return `<ul class="list">${clues.map(clueLine).join('')}</ul>`;
+    }
+    const byRound = {};
+    clues.forEach((c) => {
+      (byRound[c.round] = byRound[c.round] || []).push(c);
+    });
+    return Object.keys(byRound)
+      .sort((a, b) => a - b)
+      .map((round) => `<h4 class="round-heading">Runde ${round}</h4><ul class="list">${byRound[round].map(clueLine).join('')}</ul>`)
+      .join('');
+  }
+
   function renderClue() {
     showView('view-clue');
     $('clue-category').textContent = state.category || '';
@@ -119,7 +145,11 @@
       $('clue-word').textContent = role.word || '';
     }
 
-    const cluedIds = new Set(state.clues.map((c) => c.playerId));
+    $('clue-round-label').textContent = state.rounds > 1 ? `Runde ${state.currentRound} af ${state.rounds}` : '';
+
+    const cluedIds = new Set(
+      state.clues.filter((c) => c.round === state.currentRound).map((c) => c.playerId)
+    );
     $('turn-order-list').innerHTML = state.turnOrder
       .map((id) => {
         const classes = [];
@@ -134,15 +164,14 @@
     $('clue-input-area').classList.toggle('hidden', !myTurn);
     $('clue-wait-msg').textContent = myTurn ? '' : `Venter på ${playerName(state.currentTurnPlayerId)}...`;
 
-    $('clue-list').innerHTML = state.clues
-      .map((c) => `<li><span><strong>${escapeHtml(c.name)}:</strong> ${escapeHtml(c.clue)}</span></li>`)
-      .join('') || '<li class="hint" style="background:none;">Ingen hints endnu</li>';
+    $('clue-list').innerHTML = renderClueGroups(state.clues, state.rounds > 1);
   }
 
   // --- Voting view --------------------------------------------------------
 
   function renderVoting() {
     showView('view-voting');
+    $('voting-clue-list').innerHTML = renderClueGroups(state.clues, state.rounds > 1);
     const hasVoted = state.votedPlayerIds.includes(myId);
     $('vote-list').innerHTML = state.players
       .filter((p) => p.id !== myId)

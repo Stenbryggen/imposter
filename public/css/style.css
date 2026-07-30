@@ -177,6 +177,34 @@ button:active:not(:disabled) {
   opacity: 0.6;
 }
 
+.segmented {
+  display: flex;
+  gap: 8px;
+}
+
+.round-option {
+  background: var(--card);
+  border: 1px solid #333648;
+}
+
+.round-option.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.round-heading {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 12px 0 6px;
+}
+
+.round-heading:first-child {
+  margin-top: 0;
+}
+
 .vote-list button {
   text-align: left;
 }
