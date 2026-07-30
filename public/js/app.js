@@ -37,12 +37,18 @@
   const prefillRoom = (params.get('room') || '').toUpperCase();
   if (prefillRoom) {
     $('code-input').value = prefillRoom;
+    $('join-panel').classList.remove('hidden');
   }
 
-  $('btn-create').addEventListener('click', () => {
+  $('btn-choose-create').addEventListener('click', () => {
     const name = $('name-input').value.trim();
     if (!name) return showToast('Skriv dit navn først.');
     socket.emit('createRoom', { name });
+  });
+
+  $('btn-choose-join').addEventListener('click', () => {
+    $('join-panel').classList.remove('hidden');
+    $('code-input').focus();
   });
 
   $('btn-join').addEventListener('click', () => {

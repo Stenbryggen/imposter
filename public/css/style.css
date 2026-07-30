@@ -117,6 +117,23 @@ button:active:not(:disabled) {
   text-align: center;
 }
 
+.name-card {
+  text-align: left;
+  margin-bottom: 4px;
+}
+
+.name-card label {
+  margin-bottom: 4px;
+  display: block;
+}
+
+.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
 .label {
   color: var(--text-dim);
   font-size: 0.85rem;

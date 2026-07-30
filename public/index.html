@@ -15,16 +15,22 @@
     <div id="toast" class="toast hidden"></div>
 
     <section id="view-start" class="view">
-      <label for="name-input">Dit navn</label>
-      <input id="name-input" placeholder="Dit navn" maxlength="20" autocomplete="off" />
+      <div class="card name-card">
+        <label for="name-input">Dit navn</label>
+        <input id="name-input" placeholder="Dit navn" maxlength="20" autocomplete="off" />
+      </div>
 
-      <button id="btn-create" class="primary">Opret nyt rum</button>
+      <button id="btn-choose-create" class="primary">Opret nyt rum</button>
 
-      <div class="divider">eller join et rum</div>
+      <div class="divider">eller</div>
 
-      <label for="code-input">Rumkode</label>
-      <input id="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" class="uppercase" />
-      <button id="btn-join">Join rum</button>
+      <button id="btn-choose-join">Join et rum med en kode</button>
+
+      <div id="join-panel" class="stacked hidden">
+        <label for="code-input">Rumkode</label>
+        <input id="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" class="uppercase" />
+        <button id="btn-join" class="primary">Join rum</button>
+      </div>
     </section>
 
     <section id="view-lobby" class="view hidden">
