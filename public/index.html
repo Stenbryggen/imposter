@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Imposter</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🎭 Imposter</h1>
+    </header>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <section id="view-start" class="view">
+      <label for="name-input">Dit navn</label>
+      <input id="name-input" placeholder="Dit navn" maxlength="20" autocomplete="off" />
+
+      <button id="btn-create" class="primary">Opret nyt rum</button>
+
+      <div class="divider">eller join et rum</div>
+
+      <label for="code-input">Rumkode</label>
+      <input id="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" class="uppercase" />
+      <button id="btn-join">Join rum</button>
+    </section>
+
+    <section id="view-lobby" class="view hidden">
+      <h2>Rum: <span id="lobby-code" class="code"></span></h2>
+      <div id="qr-container" class="qr"></div>
+      <p class="hint">Del koden, eller lad andre scanne QR-koden for at joine</p>
+      <h3>Spillere</h3>
+      <ul id="player-list" class="list"></ul>
+      <p id="lobby-hint" class="hint"></p>
+      <button id="btn-start" class="primary hidden">Start spil</button>
+    </section>
+
+    <section id="view-clue" class="view hidden">
+      <div class="card">
+        <p class="label">Kategori</p>
+        <p id="clue-category" class="big"></p>
+        <p class="label" id="clue-role-label">Dit ord</p>
+        <p id="clue-word" class="big highlight"></p>
+      </div>
+
+      <h3>Turrækkefølge</h3>
+      <ol id="turn-order-list" class="list"></ol>
+
+      <div id="clue-input-area" class="hidden">
+        <input id="clue-input" placeholder="Skriv dit hint..." maxlength="30" autocomplete="off" />
+        <button id="btn-submit-clue" class="primary">Send hint</button>
+      </div>
+      <p id="clue-wait-msg" class="hint"></p>
+
+      <h3>Hints givet</h3>
+      <ul id="clue-list" class="list"></ul>
+    </section>
+
+    <section id="view-voting" class="view hidden">
+      <h2>Hvem er imposteren?</h2>
+      <ul id="vote-list" class="list vote-list"></ul>
+      <p id="vote-progress" class="hint"></p>
+    </section>
+
+    <section id="view-guess" class="view hidden">
+      <div id="guess-imposter-area" class="hidden">
+        <h2>Du blev afsløret! 🕵️</h2>
+        <p>Gæt det hemmelige ord for at vinde alligevel:</p>
+        <input id="guess-input" placeholder="Dit gæt..." autocomplete="off" />
+        <button id="btn-submit-guess" class="primary">Gæt ordet</button>
+      </div>
+      <div id="guess-wait-area" class="hidden">
+        <h2 id="guess-wait-title"></h2>
+        <p class="hint">Venter på at imposteren gætter ordet...</p>
+      </div>
+    </section>
+
+    <section id="view-result" class="view hidden">
+      <h2 id="result-title"></h2>
+      <p id="result-detail" class="hint"></p>
+      <p id="result-word" class="big"></p>
+      <button id="btn-play-again" class="primary hidden">Spil igen</button>
+      <p id="result-wait" class="hint hidden">Venter på at værten starter en ny runde...</p>
+    </section>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/qrcode.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
