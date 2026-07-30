@@ -6,6 +6,8 @@ const MAX_PLAYERS = 12;
 const MAX_NAME_LENGTH = 20;
 const MIN_ROUNDS = 1;
 const MAX_ROUNDS = 3;
+const MIN_MATCH_ROUNDS = 1;
+const MAX_MATCH_ROUNDS = 20;
 
 const rooms = new Map(); // code -> room
 const socketToRoom = new Map(); // socketId -> code
@@ -71,6 +73,10 @@ function createRoom(hostId, hostName) {
     clues: [],
     votes: {},
     lastResult: null,
+    matchRounds: null,
+    matchRound: 1,
+    matchComplete: false,
+    scores: [],
   };
   rooms.set(code, room);
   socketToRoom.set(hostId, code);
@@ -96,11 +102,23 @@ function clampRounds(rounds) {
   return Math.min(MAX_ROUNDS, Math.max(MIN_ROUNDS, n));
 }
 
-function startGame(code, requesterId, rounds) {
+function clampMatchRounds(matchRounds) {
+  const n = parseInt(matchRounds, 10);
+  if (Number.isNaN(n)) return MIN_MATCH_ROUNDS;
+  return Math.min(MAX_MATCH_ROUNDS, Math.max(MIN_MATCH_ROUNDS, n));
+}
+
+function startGame(code, requesterId, rounds, matchRounds) {
   const room = requireRoom(code);
   requireHost(room, requesterId);
   if (room.players.length < MIN_PLAYERS) {
     throw new Error(`Der skal mindst ${MIN_PLAYERS} spillere til at starte.`);
+  }
+  if (room.matchRounds === null) {
+    room.matchRounds = clampMatchRounds(matchRounds);
+    room.matchRound = 1;
+    room.matchComplete = false;
+    room.scores = [];
   }
   const { category, word } = pickWord();
   room.category = category;
@@ -161,6 +179,28 @@ function tallyVotes(room) {
   return { accusedId, counts };
 }
 
+function addScore(room, playerId, name) {
+  let entry = room.scores.find((s) => s.playerId === playerId);
+  if (!entry) {
+    entry = { playerId, name, wins: 0 };
+    room.scores.push(entry);
+  }
+  entry.name = name;
+  entry.wins += 1;
+}
+
+function applyRoundScoring(room) {
+  const winner = room.lastResult.winner;
+  room.players.forEach((player) => {
+    const isImposter = player.id === room.imposterId;
+    const won = (winner === 'imposter' && isImposter) || (winner === 'players' && !isImposter);
+    if (won) addScore(room, player.id, player.name);
+  });
+  if (room.matchRounds !== null && room.matchRound >= room.matchRounds) {
+    room.matchComplete = true;
+  }
+}
+
 function resolveVotesIfComplete(room) {
   if (room.phase !== 'VOTING') return;
   if (Object.keys(room.votes).length < room.players.length) return;
@@ -178,6 +218,7 @@ function resolveVotesIfComplete(room) {
     winner: wasImposter ? null : 'imposter',
   };
   room.phase = wasImposter ? 'IMPOSTER_GUESS' : 'RESULT';
+  if (room.phase === 'RESULT') applyRoundScoring(room);
 }
 
 function submitVote(code, voterId, votedId) {
@@ -200,12 +241,21 @@ function imposterGuess(code, socketId, guess) {
   room.lastResult.imposterGuessCorrect = correct;
   room.lastResult.winner = correct ? 'imposter' : 'players';
   room.phase = 'RESULT';
+  applyRoundScoring(room);
   return room;
 }
 
 function playAgain(code, requesterId) {
   const room = requireRoom(code);
   requireHost(room, requesterId);
+  if (room.matchComplete) {
+    room.matchRounds = null;
+    room.matchRound = 1;
+    room.matchComplete = false;
+    room.scores = [];
+  } else {
+    room.matchRound += 1;
+  }
   room.phase = 'LOBBY';
   room.category = null;
   room.word = null;
@@ -298,6 +348,10 @@ function buildPublicState(room) {
     imposterId: room.phase === 'RESULT' || room.phase === 'IMPOSTER_GUESS' ? room.imposterId : null,
     lastResult: room.phase === 'RESULT' || room.phase === 'IMPOSTER_GUESS' ? room.lastResult : null,
     minPlayers: MIN_PLAYERS,
+    matchRounds: room.matchRounds,
+    matchRound: room.matchRound,
+    matchComplete: room.matchComplete,
+    scores: room.scores,
   };
 }
 

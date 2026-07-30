@@ -199,12 +199,14 @@ button:active:not(:disabled) {
   gap: 8px;
 }
 
-.round-option {
+.round-option,
+.match-round-option {
   background: var(--card);
   border: 1px solid #333648;
 }
 
-.round-option.active {
+.round-option.active,
+.match-round-option.active {
   background: var(--accent);
   color: white;
   border-color: var(--accent);

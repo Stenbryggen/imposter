@@ -70,8 +70,26 @@
     });
   });
 
+  let selectedMatchRounds = 1;
+  document.querySelectorAll('.match-round-option').forEach((btn) => {
+    btn.classList.toggle('active', Number(btn.dataset.rounds) === selectedMatchRounds);
+    btn.addEventListener('click', () => {
+      selectedMatchRounds = Number(btn.dataset.rounds);
+      document.querySelectorAll('.match-round-option').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  function renderScoreboard(scores) {
+    if (!scores || !scores.length) return '';
+    const sorted = [...scores].sort((a, b) => b.wins - a.wins);
+    const rows = sorted
+      .map((s) => `<li><span>${escapeHtml(s.name)}</span><span>${s.wins} ${s.wins === 1 ? 'sejr' : 'sejre'}</span></li>`)
+      .join('');
+    return `<h3>Stilling</h3><ul class="list">${rows}</ul>`;
+  }
+
   $('btn-start').addEventListener('click', () => {
-    socket.emit('startGame', { rounds: selectedRounds });
+    socket.emit('startGame', { rounds: selectedRounds, matchRounds: selectedMatchRounds });
   });
 
   function renderLobby() {
@@ -95,9 +113,24 @@
 
     const startBtn = $('btn-start');
     const hint = $('lobby-hint');
+    const freshMatch = state.matchRounds === null;
+
     $('rounds-select').classList.toggle('hidden', !isHost());
+    $('match-rounds-select').classList.toggle('hidden', !(isHost() && freshMatch));
+
+    if (freshMatch) {
+      $('match-progress').classList.add('hidden');
+      $('lobby-scoreboard').classList.add('hidden');
+    } else {
+      $('match-progress').textContent = `Runde ${state.matchRound} af ${state.matchRounds}`;
+      $('match-progress').classList.remove('hidden');
+      $('lobby-scoreboard').innerHTML = renderScoreboard(state.scores);
+      $('lobby-scoreboard').classList.toggle('hidden', !state.scores.length);
+    }
+
     if (isHost()) {
       startBtn.classList.remove('hidden');
+      startBtn.textContent = freshMatch ? 'Start spil' : 'Start næste runde';
       const enough = state.players.length >= state.minPlayers;
       startBtn.disabled = !enough;
       hint.textContent = enough
@@ -248,7 +281,21 @@
     $('result-title').textContent = title;
     $('result-detail').textContent = detail;
     $('result-word').textContent = `Ordet var: ${state.word} (${state.category})`;
+    $('result-scoreboard').innerHTML = renderScoreboard(state.scores);
 
+    if (state.matchComplete) {
+      const sorted = [...state.scores].sort((a, b) => b.wins - a.wins);
+      const topWins = sorted.length ? sorted[0].wins : 0;
+      const winners = sorted.filter((s) => s.wins === topWins).map((s) => s.name);
+      $('match-winner-msg').textContent = winners.length > 1
+        ? `Kampen er slut! Deling mellem ${winners.join(' & ')} med ${topWins} sejre 🏆`
+        : `Kampen er slut! ${winners[0]} vinder kampen med ${topWins} sejre 🏆`;
+      $('match-winner-msg').classList.remove('hidden');
+    } else {
+      $('match-winner-msg').classList.add('hidden');
+    }
+
+    $('btn-play-again').textContent = state.matchComplete ? 'Ny kamp' : 'Næste runde';
     $('btn-play-again').classList.toggle('hidden', !isHost());
     $('result-wait').classList.toggle('hidden', isHost());
   }

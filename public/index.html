@@ -47,6 +47,17 @@
           <button type="button" class="round-option" data-rounds="3">3</button>
         </div>
       </div>
+      <div id="match-rounds-select" class="hidden">
+        <p class="label">Antal spil-runder (hele kampe)</p>
+        <div class="segmented" id="match-rounds-options">
+          <button type="button" class="match-round-option" data-rounds="1">1</button>
+          <button type="button" class="match-round-option" data-rounds="3">3</button>
+          <button type="button" class="match-round-option" data-rounds="5">5</button>
+          <button type="button" class="match-round-option" data-rounds="10">10</button>
+        </div>
+      </div>
+      <p id="match-progress" class="hint hidden"></p>
+      <div id="lobby-scoreboard" class="hidden"></div>
       <p id="lobby-hint" class="hint"></p>
       <button id="btn-start" class="primary hidden">Start spil</button>
     </section>
@@ -99,6 +110,8 @@
       <h2 id="result-title"></h2>
       <p id="result-detail" class="hint"></p>
       <p id="result-word" class="big"></p>
+      <p id="match-winner-msg" class="big hidden"></p>
+      <div id="result-scoreboard"></div>
       <button id="btn-play-again" class="primary hidden">Spil igen</button>
       <p id="result-wait" class="hint hidden">Venter på at værten starter en ny runde...</p>
     </section>
