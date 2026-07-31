@@ -4,29 +4,35 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>Imposter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="app">
     <header>
-      <h1>🎭 Imposter</h1>
+      <div class="brand-mark"></div>
+      <div class="brand-word">Imposter</div>
     </header>
 
     <div id="toast" class="toast hidden"></div>
 
     <section id="view-start" class="view">
+      <p class="tagline">Find den skjulte spiller, eller vær den selv.</p>
+
       <div class="card name-card">
         <label for="name-input">Dit navn</label>
-        <input id="name-input" placeholder="Dit navn" maxlength="20" autocomplete="off" />
+        <input id="name-input" placeholder="Skriv dit navn" maxlength="20" autocomplete="off" />
       </div>
 
       <button id="btn-choose-create" class="primary">Opret nyt rum</button>
 
-      <div class="divider">eller</div>
+      <div class="divider">ELLER</div>
 
       <button id="btn-choose-join">Join et rum med en kode</button>
 
-      <div id="join-panel" class="stacked hidden">
+      <div id="join-panel" class="stacked panel hidden">
         <label for="code-input">Rumkode</label>
         <input id="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" class="uppercase" />
         <button id="btn-join" class="primary">Join rum</button>
@@ -34,11 +40,21 @@
     </section>
 
     <section id="view-lobby" class="view hidden">
-      <h2>Rum: <span id="lobby-code" class="code"></span></h2>
+      <div class="room-code-block">
+        <div class="label">Rumkode</div>
+        <div id="lobby-code" class="room-code"></div>
+      </div>
       <div id="qr-container" class="qr"></div>
-      <p class="hint">Del koden, eller lad andre scanne QR-koden for at joine</p>
-      <h3>Spillere</h3>
-      <ul id="player-list" class="list"></ul>
+      <p class="hint">Del koden, eller lad andre scanne QR-koden</p>
+
+      <div>
+        <h3 id="players-heading">Spillere</h3>
+        <ul id="player-list" class="list"></ul>
+      </div>
+
+      <p id="match-progress" class="label hidden"></p>
+      <div id="lobby-scoreboard" class="hidden"></div>
+
       <div id="rounds-select" class="hidden">
         <p class="label">Antal runder med hints</p>
         <div class="segmented" id="rounds-options">
@@ -48,7 +64,7 @@
         </div>
       </div>
       <div id="match-rounds-select" class="hidden">
-        <p class="label">Antal spil-runder (hele kampe)</p>
+        <p class="label">Antal spil-runder</p>
         <div class="segmented" id="match-rounds-options">
           <button type="button" class="match-round-option" data-rounds="1">1</button>
           <button type="button" class="match-round-option" data-rounds="3">3</button>
@@ -56,27 +72,25 @@
           <button type="button" class="match-round-option" data-rounds="10">10</button>
         </div>
       </div>
-      <p id="match-progress" class="hint hidden"></p>
-      <div id="lobby-scoreboard" class="hidden"></div>
-      <p id="lobby-hint" class="hint"></p>
       <button id="btn-start" class="primary hidden">Start spil</button>
+      <p id="lobby-hint" class="hint"></p>
     </section>
 
     <section id="view-clue" class="view hidden">
-      <div class="card">
+      <div class="card gradient-card">
         <p class="label">Kategori</p>
         <p id="clue-category" class="big"></p>
         <p class="label" id="clue-role-label">Dit ord</p>
-        <p id="clue-word" class="big highlight"></p>
+        <p id="clue-word" class="big"></p>
       </div>
 
       <p id="clue-round-label" class="hint"></p>
       <h3>Turrækkefølge</h3>
       <ol id="turn-order-list" class="list"></ol>
 
-      <div id="clue-input-area" class="hidden">
+      <div id="clue-input-area" class="hidden inline-form">
         <input id="clue-input" placeholder="Skriv dit hint..." maxlength="30" autocomplete="off" />
-        <button id="btn-submit-clue" class="primary">Send hint</button>
+        <button id="btn-submit-clue" class="primary">Send</button>
       </div>
       <p id="clue-wait-msg" class="hint"></p>
 
@@ -85,7 +99,7 @@
     </section>
 
     <section id="view-voting" class="view hidden">
-      <h2>Hvem er imposteren?</h2>
+      <h2 class="serif-title">Hvem er imposteren?</h2>
       <h3>Hints der blev givet</h3>
       <div id="voting-clue-list"></div>
       <h3>Stem</h3>
@@ -95,22 +109,22 @@
 
     <section id="view-guess" class="view hidden">
       <div id="guess-imposter-area" class="hidden">
-        <h2>Du blev afsløret! 🕵️</h2>
+        <h2 class="serif-title gold">Du blev afsløret</h2>
         <p>Gæt det hemmelige ord for at vinde alligevel:</p>
         <input id="guess-input" placeholder="Dit gæt..." autocomplete="off" />
         <button id="btn-submit-guess" class="primary">Gæt ordet</button>
       </div>
       <div id="guess-wait-area" class="hidden">
-        <h2 id="guess-wait-title"></h2>
+        <h2 id="guess-wait-title" class="serif-title"></h2>
         <p class="hint">Venter på at imposteren gætter ordet...</p>
       </div>
     </section>
 
     <section id="view-result" class="view hidden">
-      <h2 id="result-title"></h2>
+      <h2 id="result-title" class="serif-title"></h2>
       <p id="result-detail" class="hint"></p>
-      <p id="result-word" class="big"></p>
-      <p id="match-winner-msg" class="big hidden"></p>
+      <div id="result-word" class="result-word-box"></div>
+      <p id="match-winner-msg" class="match-winner hidden"></p>
       <div id="result-scoreboard"></div>
       <button id="btn-play-again" class="primary hidden">Spil igen</button>
       <p id="result-wait" class="hint hidden">Venter på at værten starter en ny runde...</p>

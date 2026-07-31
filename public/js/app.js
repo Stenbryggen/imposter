@@ -8,7 +8,9 @@
   const $ = (id) => document.getElementById(id);
 
   function showView(id) {
-    document.querySelectorAll('.view').forEach((v) => v.classList.add('hidden'));
+    document.querySelectorAll('.view').forEach((v) => {
+      if (v.id !== id) v.classList.add('hidden');
+    });
     $(id).classList.remove('hidden');
   }
 
@@ -102,12 +104,13 @@
     qr.make();
     $('qr-container').innerHTML = qr.createImgTag(5, 4);
 
+    $('players-heading').textContent = `Spillere · ${state.players.length}`;
     $('player-list').innerHTML = state.players
       .map((p) => {
-        const tags = [];
-        if (p.id === state.hostId) tags.push('👑');
-        if (p.id === myId) tags.push('(dig)');
-        return `<li><span>${escapeHtml(p.name)}</span><span>${tags.join(' ')}</span></li>`;
+        const isHostPlayer = p.id === state.hostId;
+        const isMe = p.id === myId;
+        const tag = isHostPlayer ? (isMe ? 'Vært · dig' : 'Vært') : (isMe ? 'Dig' : '');
+        return `<li><span>${escapeHtml(p.name)}</span><span class="turn-mark">${tag}</span></li>`;
       })
       .join('');
 
@@ -178,10 +181,12 @@
 
     if (role && role.isImposter) {
       $('clue-role-label').textContent = 'Din rolle';
-      $('clue-word').textContent = 'DU ER IMPOSTEREN 🕵️';
+      $('clue-word').textContent = 'Du er Imposteren';
+      $('clue-word').className = 'big imposter-word';
     } else if (role) {
       $('clue-role-label').textContent = 'Dit ord';
       $('clue-word').textContent = role.word || '';
+      $('clue-word').className = 'big reveal-word';
     }
 
     $('clue-round-label').textContent = state.rounds > 1 ? `Runde ${state.currentRound} af ${state.rounds}` : '';
@@ -194,8 +199,8 @@
         const classes = [];
         if (id === state.currentTurnPlayerId) classes.push('active');
         if (cluedIds.has(id)) classes.push('done');
-        const mark = cluedIds.has(id) ? '✔' : id === state.currentTurnPlayerId ? '…' : '';
-        return `<li class="${classes.join(' ')}"><span>${escapeHtml(playerName(id))}${id === myId ? ' (dig)' : ''}</span><span>${mark}</span></li>`;
+        const mark = cluedIds.has(id) ? '✓' : id === state.currentTurnPlayerId ? '…' : '';
+        return `<li class="${classes.join(' ')}"><span class="turn-name"><span class="turn-dot"></span>${escapeHtml(playerName(id))}${id === myId ? ' (dig)' : ''}</span><span class="turn-mark">${mark}</span></li>`;
       })
       .join('');
 
@@ -267,15 +272,15 @@
 
     if (r.wasImposter) {
       if (r.winner === 'imposter') {
-        title = `${r.accusedName} var imposteren, men gættede ordet rigtigt! 🕵️`;
+        title = `${r.accusedName} var imposteren, men gættede ordet rigtigt`;
         detail = `Gættede: "${r.imposterGuess}" — Imposteren vinder!`;
       } else {
-        title = `${r.accusedName} var imposteren! 🎉`;
+        title = `${r.accusedName} var imposteren`;
         detail = `Gættede: "${r.imposterGuess}" — forkert. Spillerne vinder!`;
       }
     } else {
-      title = `${r.accusedName} var ikke imposteren.`;
-      detail = `${playerName(state.imposterId)} var imposteren og vinder! 🕵️`;
+      title = `${r.accusedName} var ikke imposteren`;
+      detail = `${playerName(state.imposterId)} var imposteren og vinder!`;
     }
 
     $('result-title').textContent = title;
@@ -288,8 +293,8 @@
       const topWins = sorted.length ? sorted[0].wins : 0;
       const winners = sorted.filter((s) => s.wins === topWins).map((s) => s.name);
       $('match-winner-msg').textContent = winners.length > 1
-        ? `Kampen er slut! Deling mellem ${winners.join(' & ')} med ${topWins} sejre 🏆`
-        : `Kampen er slut! ${winners[0]} vinder kampen med ${topWins} sejre 🏆`;
+        ? `Kampen er slut! Deling mellem ${winners.join(' & ')} med ${topWins} sejre`
+        : `Kampen er slut! ${winners[0]} vinder kampen med ${topWins} sejre`;
       $('match-winner-msg').classList.remove('hidden');
     } else {
       $('match-winner-msg').classList.add('hidden');
